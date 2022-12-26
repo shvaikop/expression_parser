@@ -14,8 +14,15 @@ public:
     {
     }
 
-    val_t parse(std::size_t n)
+    val_t parse()
     {
+        std::size_t n;
+        try{
+            n = get_num_lines();
+        }
+        catch(std::runtime_error e){
+            std::cout << e.what() << std::endl;
+        }
         for (std::size_t i = 0; i < n; i++) {
             try {
                 if (std::isalpha(next())) {     // variable assignment
@@ -47,16 +54,16 @@ public:
         return 0;
     }
 private:
-    val_t parse_line() {
-        if (std::isalpha(next())){     // variable assignment
-            std::string var_name = get_var_name();
-            if (next() != '='){
-                throw std::runtime_error("Variable name must be followed by \"=\" variable assignement");
-            }
-            eat();
-            val_t expr = A();
-
+    std::size_t get_num_lines(){
+        if (!std::isdigit(next())){
+            throw std::runtime_error("Integer expected as number of lines!!!");
         }
+        std::size_t n = (unsigned long) T();
+        while (next() != '\n'){
+            next_ = is().get();
+        }
+        next_ = is().get();
+        return n;
     }
 
     std::string get_var_name(){
@@ -177,7 +184,7 @@ int main(int argc, char** argv)
 
         parser p(&is);
 
-        parser::val_t x = p.parse(5);
+        parser::val_t x = p.parse();
 
         std::cout << x << std::endl;
     }
