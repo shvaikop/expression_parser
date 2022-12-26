@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include <stdexcept>
+#include <map>
 
 class parser {
 public:
@@ -13,18 +14,60 @@ public:
     {
     }
 
-    val_t parse()
+    val_t parse(std::size_t n)
     {
-        try {
-            val_t x = A();
-            return x;
+        for (std::size_t i = 0; i < n; i++) {
+            try {
+                if (std::isalpha(next())) {     // variable assignment
+                    std::string var_name = get_var_name();
+                    if (vars.count(var_name) != 0) {
+                        throw std::runtime_error("Variable reassignment!");
+                    }
+                    if (next() != '=') {
+                        throw std::runtime_error("Variable name must be followed by \"=\" variable assignement");
+                    }
+                    eat();
+                    val_t expr = A();
+                    vars[var_name] = expr;
+                    std::cout << var_name << " = " << expr << std::endl;
+                }
+                else {
+                    val_t expr = A();
+                    std::cout << expr << std::endl;
+                }
+            }
+            catch (std::runtime_error e) {
+                std::cout << e.what() << std::endl;
+                while (next() != '\n'){
+                    next_ = is().get();
+                }
+            }
+            eat(); // Might need to change to just eating new line character    !!!!!
         }
-        catch(std::runtime_error e) {
-            std::cout << e.what() << std::endl;
-            return -1;
-        }
+        return 0;
     }
 private:
+    val_t parse_line() {
+        if (std::isalpha(next())){     // variable assignment
+            std::string var_name = get_var_name();
+            if (next() != '='){
+                throw std::runtime_error("Variable name must be followed by \"=\" variable assignement");
+            }
+            eat();
+            val_t expr = A();
+
+        }
+    }
+
+    std::string get_var_name(){
+        std::string var_name;
+        while (std::isalpha(next())){
+            var_name.push_back(std::tolower(next()));
+            next_ = is().get();
+        }
+        return var_name;
+    }
+
     val_t A()
     {
         val_t x = M();
@@ -106,8 +149,10 @@ private:
     {
         return *isp_;
     }
+
     std::istream* isp_;
     char next_ = is().get();
+    std::map<std::string, double> vars;
 };
 
 int main(int argc, char** argv)
@@ -132,7 +177,7 @@ int main(int argc, char** argv)
 
         parser p(&is);
 
-        parser::val_t x = p.parse();
+        parser::val_t x = p.parse(5);
 
         std::cout << x << std::endl;
     }
